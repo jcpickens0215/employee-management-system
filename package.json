@@ -1,0 +1,26 @@
+{
+  "name": "employee-management-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jcpickens0215/employee-management-system.git"
+  },
+  "author": "Justin Pickens",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jcpickens0215/employee-management-system/issues"
+  },
+  "homepage": "https://github.com/jcpickens0215/employee-management-system#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "dotenv": "^10.0.0",
+    "inquirer": "^8.1.2",
+    "mysql2": "^2.2.5"
+  }
+}
