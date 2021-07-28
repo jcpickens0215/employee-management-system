@@ -1,6 +1,5 @@
 const Inquirer = require('inquirer');
 const Query = require('./queries');
-const Table = require('console.table');
 
 // Add functions
 function addDepartment() {
@@ -9,26 +8,55 @@ function addDepartment() {
         [
             {
                 // What is the name of the department?
+                name: "deptName",
+                type: "input"
             }
         ]
     ).then( (answer) => {
-        // Query.addDepartment(answer);
+        Query.addDepartment(answer.deptName);
         start();
     });
 }
 
-function addRole() {
+const addRole = async () => {
+
+    let depts = Query.allDepartmentsNames();
+
+    console.log(depts);
 
     Inquirer.prompt(
         [
+            // What is the name of the role?
             {
-                // What is the name of the role?
-                // What is the salary?
-                // What department does this role belong to?
+                name: "roleName",
+                type: "input"
+            },
+
+            // What is the salary?
+            {
+                name: "salary",
+                type: "input"
+            },
+
+            // What department does this role belong to?
+            {
+                name: "roleDept",
+                type: "list",
+                choices: depts,
+                default: 0
             }
         ]
     ).then( (answers) => {
-        // Query.addRole(answers.name, answers.salary, answers.dept);
+
+        let dept = Query.getDepartmentID(answers.roleDept);
+
+        console.log(dept);
+
+        // if (!answers.salary.isNaN) {
+
+        //     Query.addRole(answers.roleName, answers.salary, dept);
+        // }
+
         start();
     });
 }
@@ -41,6 +69,8 @@ function addEmployee() {
                 // What is their first name?
                 // What is their last name?
                 // What is their role?
+                //      Query.allDepartments();
+                //      Query.allRoles(department);
                 // Who is their manager?
             }
         ]
@@ -58,6 +88,7 @@ function updateEmployeeRole() {
             {
                 // Who do you wish to update?
                 // What is their new role?
+                //      Query.allRoles();
                 // Did they change managers?
                 // Conditional on true:
                 //      Who is their new manager?
@@ -67,6 +98,11 @@ function updateEmployeeRole() {
         // Query.updateEmployeeRole(answers.who, answers.role, answers.manager);
         start();
     });
+}
+
+function foo() {
+    console.log(Query.allDepartmentsNames());
+    start();
 }
 
 // Initial function
@@ -85,6 +121,7 @@ function start() {
                             "Add a Role",
                             "Add an Employee",
                             "Update Employee Role",
+                            "Debug",
                             "Quit"
                          ],
                 default: 0
@@ -92,18 +129,20 @@ function start() {
         ]
     ).then( (answer) => {
 
-        switch (answer) {
+        switch (answer.mainMenu) {
 
             case "View all Departments":
-                // Query.allDepartments();
+                Query.allDepartments();
                 break;
             
             case "View all Roles":
                 // Query.allRoles();
+                start();
                 break;
         
             case "View all Employees":
                 // Query.allEmployees();
+                start();
                 break;
     
             case "Add a Department":
@@ -120,6 +159,10 @@ function start() {
 
             case "Update Employee Role":
                 updateEmployeeRole();
+                break;
+
+            case "Debug":
+                foo();
                 break;
 
             case "Quit":
