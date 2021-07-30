@@ -22,8 +22,6 @@ async function addRole() {
 
     let depts = await Query.toArray(`SELECT * FROM departments`, "name");
 
-    console.log(depts);
-
     Inquirer.prompt(
         [
             // What is the name of the role?
@@ -94,10 +92,10 @@ async function addEmployee() {
         ]
     ).then( async (answer) => {
 
-        let role = await Query.toArray(`SELECT (id) FROM roles WHERE title = '${answer.roleName}'`,"id");
-        let manager = await Query.toArray(`SELECT (id) FROM employees WHERE CONCAT (first_name, " ", last_name) = '${answer.manager}'`,"id");
+        let roleID = await Query.toArray(`SELECT (id) FROM roles WHERE title = '${answer.roleName}'`,"id");
+        let managerID = await Query.toArray(`SELECT (id) FROM employees WHERE CONCAT (first_name, " ", last_name) = '${answer.manager}'`,"id");
 
-        Query.addEmployee(answer.fName, answer.lName, role[0], manager[0]);
+        Query.addEmployee(answer.fName, answer.lName, roleID[0], managerID[0]);
 
         start();
     });
@@ -130,6 +128,7 @@ async function updateEmployeeRole() {
                 choices: roles,
                 default: 0
             },
+            // Did they change managers?
             {
                 name: "changedManagers",
                 type: "confirm"
@@ -143,8 +142,20 @@ async function updateEmployeeRole() {
                 when: (res) => res.changedManagers === true
             }
         ]
-    ).then( (answers) => {
-        // Query.updateEmployeeRole(answers.who, answers.role, answers.manager);
+    ).then( async (answers) => {
+
+        let roleID = await Query.toArray(`SELECT (id) FROM roles WHERE title = '${answers.roleName}'`,"id");
+        let managerID = await Query.toArray(`SELECT (id) FROM employees WHERE CONCAT (first_name, " ", last_name) = '${answers.manager}'`,"id");
+
+        if (managerID.length === 0) managerID = null;
+
+        Query.genericQuery(
+            `UPDATE employees
+            SET role_id = ${roleID[0]}
+            ${answers.changedManagers ? ', manager_id = ' + managerID : ''}
+            WHERE CONCAT (first_name, " ", last_name) = '${answers.employee}'`
+        );
+
         start();
     });
 }
@@ -218,7 +229,7 @@ function start() {
                 addEmployee();
                 break;
 
-            // TODO
+            // Working
             case "Update Employee Role":
                 updateEmployeeRole();
                 break;
