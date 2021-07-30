@@ -16,57 +16,28 @@ const db = MySQL.createConnection(
     console.log(`Connected to the employees_db database.`)
 );
 
-// Queries defined here as functions
+// Converts SQL results (via genericQuery) into an array
+async function toArray(query, field) {
 
-// Query.allDepartments();
-function allDepartmentsNames() {
+    let data = await genericQuery(query);
 
-    console.log("attempting...");
+    let returnArr = [];
 
-    return new Promise((resolve, reject) => {
+    data[0].forEach( (row) => {
 
-        db.query('SELECT * FROM departments;', (err, results) => {
-
-            if (err) reject(err);
-    
-            // let deptStrings = [];
-    
-            // Object.keys(results).forEach(function(key) {
-            //     var row = results[key];
-            //     deptStrings.push(row.name);
-            //     // console.log(deptStrings);
-            // });
-    
-            resolve(results);
-        });
+        returnArr.push(row[field]);
     });
+
+    return returnArr;
 }
 
-// Query.allDepartments();
-function allDepartments() {
+// Takes a SQL string and returns the results
+function genericQuery(myQuery) {
 
-    db.query(`SELECT (name) FROM departments`, (err, results) => {
-
-        if (err) console.log(err);
-
-        console.table(results);
-        return;
-    });
+    return db.promise().query(myQuery);
 }
 
-function getDepartmentID(department) {
-
-    db.query(`SELECT (id) FROM departments WHERE name = ?`, department, (err, result) => {
-
-        if (err) console.log(err);
-
-        return result[0].id;
-    });
-}
-
-// Query.allRoles(opt department);
-// Query.allEmployees(opt department, opt role);
-
+// Add a department
 function addDepartment(department) {
 
     db.query(`INSERT INTO departments (name) VALUES (?)`, department, (err) => {
@@ -75,24 +46,36 @@ function addDepartment(department) {
     });
 }
 
+// Add a role
 function addRole(name, salary, dept) {
 
-    db.query(`INSERT INTO roles (name, salary, department) VALUES (?, ?, ?)`, [name, salary, dept], (err) => {
+    db.query(`INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`, [name, salary, dept], (err) => {
 
         if (err) console.log(err);
     });
 
 }
-// Query.addEmployee(answers.first, answers.last, answers.role, answers.manager);
+
+// Add an Employee
+function addEmployee(fName, lName, role, manager) {
+
+    db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`,
+             [fName, lName, role, manager], (err) => {
+
+        if (err) console.log(err);
+    });
+
+}
+
 
 // Query.updateEmployeeRole(answers.who, answers.role, answers.manager);
 
 // Export functions
 module.exports = {
     // Exported functions
-    allDepartmentsNames: allDepartmentsNames,
-    allDepartments: allDepartments,
-    getDepartmentID: getDepartmentID,
+    toArray: toArray,
+    genericQuery: genericQuery,
     addDepartment: addDepartment,
-    addRole: addRole
+    addRole: addRole,
+    addEmployee: addEmployee
 };

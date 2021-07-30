@@ -18,9 +18,9 @@ function addDepartment() {
     });
 }
 
-const addRole = async () => {
+async function addRole() {
 
-    let depts = Query.allDepartmentsNames();
+    let depts = await Query.toArray(`SELECT * FROM departments`, "name");
 
     console.log(depts);
 
@@ -46,52 +46,101 @@ const addRole = async () => {
                 default: 0
             }
         ]
-    ).then( (answers) => {
+    ).then( async (answers) => {
 
-        let dept = Query.getDepartmentID(answers.roleDept);
+        let dept = await Query.toArray(`SELECT (id) FROM departments WHERE name = '${answers.roleDept}'`,"id");
 
-        console.log(dept);
+        if (!answers.salary.isNaN) {
 
-        // if (!answers.salary.isNaN) {
-
-        //     Query.addRole(answers.roleName, answers.salary, dept);
-        // }
+            Query.addRole(answers.roleName, answers.salary, dept[0]);
+        }
 
         start();
     });
 }
 
-function addEmployee() {
+async function addEmployee() {
+
+    let currentEmployees = await Query.toArray(`SELECT CONCAT (first_name, " ", last_name) AS name FROM employees`, "name");
+    currentEmployees.push("None");
+    let roles = await Query.toArray(`SELECT * FROM roles`, "title");
 
     Inquirer.prompt(
         [
-            {
                 // What is their first name?
+                {
+                    name: "fName",
+                    type: "input"
+                },
                 // What is their last name?
+                {
+                    name: "lName",
+                    type: "input"
+                },
                 // What is their role?
-                //      Query.allDepartments();
-                //      Query.allRoles(department);
+                {
+                    name: "roleName",
+                    type: "list",
+                    choices: roles,
+                    default: 0
+                },
                 // Who is their manager?
-            }
+                {
+                    name: "manager",
+                    type: "list",
+                    choices: currentEmployees,
+                    default: 0
+                }
         ]
-    ).then( (answer) => {
-        // Query.addEmployee(answers.first, answers.last, answers.role, answers.manager);
+    ).then( async (answer) => {
+
+        let role = await Query.toArray(`SELECT (id) FROM roles WHERE title = '${answer.roleName}'`,"id");
+        let manager = await Query.toArray(`SELECT (id) FROM employees WHERE CONCAT (first_name, " ", last_name) = '${answer.manager}'`,"id");
+
+        Query.addEmployee(answer.fName, answer.lName, role[0], manager[0]);
+
         start();
     });
 }
 
 // Update functions
-function updateEmployeeRole() {
+async function updateEmployeeRole() {
+
+    let currentEmployees = await Query.toArray(`SELECT CONCAT (first_name, " ", last_name) AS name FROM employees`, "name");
+    let roles = await Query.toArray(`SELECT * FROM roles`, "title");
+    let manager = currentEmployees;
+    manager.push("None");
 
     Inquirer.prompt(
         [
+            // Did they change managers?
+            // Conditional on true:
+            //      Who is their new manager?
+            // Who do you wish to update?
             {
-                // Who do you wish to update?
-                // What is their new role?
-                //      Query.allRoles();
-                // Did they change managers?
-                // Conditional on true:
-                //      Who is their new manager?
+                name: "employee",
+                type: "list",
+                choices: currentEmployees,
+                default: 0
+            },
+            // What is their new role?
+            {
+                name: "roleName",
+                type: "list",
+                choices: roles,
+                default: 0
+            },
+            {
+                name: "changedManagers",
+                type: "confirm"
+            },
+            // Who is their manager?
+            {
+                name: "manager",
+                type: "list",
+                choices: currentEmployees,
+                default: 0,
+                when: (res) => res.changedManagers === true
             }
         ]
     ).then( (answers) => {
@@ -100,8 +149,10 @@ function updateEmployeeRole() {
     });
 }
 
-function foo() {
-    console.log(Query.allDepartmentsNames());
+async function foo() {
+
+    let currentEmployees = await Query.toArray(`SELECT CONCAT (first_name, " ", last_name) AS name FROM employees`, "name");
+    console.log(currentEmployees);
     start();
 }
 
@@ -127,40 +178,52 @@ function start() {
                 default: 0
             }
         ]
-    ).then( (answer) => {
+    ).then( async (answer) => {
 
         switch (answer.mainMenu) {
 
+            // Working
             case "View all Departments":
-                Query.allDepartments();
+                let deptPrint = await Query.genericQuery(`SELECT (name) FROM departments`);
+                console.table(deptPrint[0]);
+                start();
                 break;
             
+            // Working
             case "View all Roles":
-                // Query.allRoles();
+                let rolePrint = await Query.genericQuery(`SELECT (title) FROM roles`);
+                console.table(rolePrint[0]);
                 start();
                 break;
         
+            // Working
             case "View all Employees":
-                // Query.allEmployees();
+                let empPrint = await Query.genericQuery(`SELECT CONCAT (first_name, " ", last_name) AS name FROM employees`);
+                console.table(empPrint[0]);
                 start();
                 break;
-    
+
+            // Working
             case "Add a Department":
                 addDepartment();
                 break;
 
+            // Working
             case "Add a Role":
                 addRole();
                 break;
 
+            // Working
             case "Add an Employee":
                 addEmployee();
                 break;
 
+            // TODO
             case "Update Employee Role":
                 updateEmployeeRole();
                 break;
 
+            // * Test
             case "Debug":
                 foo();
                 break;
@@ -169,6 +232,7 @@ function start() {
                 break;
             
         }
+
     });
 
 }
