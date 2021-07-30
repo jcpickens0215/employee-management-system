@@ -1,5 +1,5 @@
+// Required libraries
 const MySQL = require('mysql2');
-
 require('dotenv').config(); // You'll need to create a .env file and add the following
                             // variables:
                             //      DB_USER - username for mysql
@@ -19,15 +19,19 @@ const db = MySQL.createConnection(
 // Converts SQL results (via genericQuery) into an array
 async function toArray(query, field) {
 
+    // Store results from a generic query
     let data = await genericQuery(query);
 
+    // Empty array to receive data
     let returnArr = [];
 
+    // Iterate through the rows and populate the container
     data[0].forEach( (row) => {
 
         returnArr.push(row[field]);
     });
 
+    // Return the array
     return returnArr;
 }
 
@@ -67,12 +71,9 @@ function addEmployee(fName, lName, role, manager) {
 
 }
 
-
-// Query.updateEmployeeRole(answers.who, answers.role, answers.manager);
-
 // Export functions
 module.exports = {
-    // Exported functions
+    
     toArray: toArray,
     genericQuery: genericQuery,
     addDepartment: addDepartment,
